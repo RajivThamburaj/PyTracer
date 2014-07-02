@@ -10,6 +10,4 @@ if __name__ == "__main__":
 	"""
 	Main method
 	"""
-	
 	world = display.World()
-	
