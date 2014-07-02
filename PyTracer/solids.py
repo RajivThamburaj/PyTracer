@@ -34,7 +34,8 @@ class Plane(Solid):
 	
 	def did_hit(self, ray, shade_rectangle):
 		"""
-		Returns True if the given ray intersects the plane
+		Returns True if the given ray intersects the plane, and mutates the
+		shade rectangle
 		"""
 		t_1 = np.dot((self.point-ray.origin), self.normal)
 		t_2 = np.dot(ray.direction, self.normal)

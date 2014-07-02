@@ -9,24 +9,9 @@ import solids
 import geometry as geom
 import numpy as np
 import matplotlib.pyplot as plt
+import sample
 import math
 import random
-
-class ScreenRect(object):
-	"""
-	Keeps track of information needed to render the current scene
-	"""
-	
-	def __init__(self):
-		"""
-		Initializer
-		"""
-		# Set default values
-		self.screen_width = 100
-		self.screen_height = 100
-		self.pixel_width = 1.0
-		self.gamma = 1.0
-		self.num_samples = 1
 
 class World(object):
 	"""
@@ -50,7 +35,9 @@ class World(object):
 		self.sr = ScreenRect()
 		self.sr.screen_width = 200
 		self.sr.screen_height = 200
-		self.sr.num_samples = 4
+		self.sr.pixel_width = 1.0
+		self.sr.num_samples = 1
+		self.sr.sampler = sample.JitteredSampler(self.sr.num_samples)
 		
 		self.background_color = const.BLACK
 		self.tracer = MultiplePrimitivesTracer(self)
@@ -86,15 +73,19 @@ class World(object):
 			for j in xrange(0, self.sr.screen_width):
 				pixel_color = const.BLACK
 				
+				n = self.sr.num_samples
 				for p in xrange(n):
-					for q in xrange(n):
-						x = self.sr.pixel_width * (j - 0.5*self.sr.screen_width + (q+random.random())/n)
-						y = self.sr.pixel_width * (i - 0.5*self.sr.screen_height + (p+random.random())/n)
-						
-						ray_origin = np.array([x, y, z_w], float)
-						ray = geom.Ray(ray_origin, ray_direction)
-						pixel_color = pixel_color + self.tracer.trace_ray(ray)
+					# Get the next sampling point in the set [0,1] x [0,1]
+					sample_point = self.sr.sampler.next_sample()
+					# Find the points within the current pixel to sample
+					x = self.sr.pixel_width * (j - 0.5*self.sr.screen_width + sample_point[0])
+					y = self.sr.pixel_width * (i - 0.5*self.sr.screen_height + sample_point[1])
+					
+					ray_origin = np.array([x, y, z_w], float)
+					ray = geom.Ray(ray_origin, ray_direction)
+					pixel_color = pixel_color + self.tracer.trace_ray(ray)
 
+				# Take the average of each of the colors
 				pixel_color = pixel_color*(1.0/self.sr.num_samples)
 				self.add_pixel(i, j, pixel_color)
 		
@@ -133,6 +124,21 @@ class World(object):
 					shade_rectangle.color = object.color
 		
 		return shade_rectangle
+
+class ScreenRect(object):
+	"""
+	Keeps track of information needed to render the current scene
+	"""
+	
+	def __init__(self):
+		"""
+		Initializer
+		"""
+		# Set default values
+		self.screen_width = 100
+		self.screen_height = 100
+		self.pixel_width = 1.0
+		self.gamma = 1.0
 
 class ShadeRectangle(object):
 	"""
