@@ -37,7 +37,7 @@ class World(object):
 		self.sr.screen_height = 200
 		self.sr.pixel_width = 1.0
 		self.sr.num_samples = 1
-		self.sr.sampler = sample.JitteredSampler(self.sr.num_samples)
+		self.sr.sampler = sample.UniformSampler(self.sr.num_samples)
 		
 		self.background_color = const.BLACK
 		self.tracer = MultiplePrimitivesTracer(self)
@@ -67,9 +67,9 @@ class World(object):
 		z_w = 100.0
 		ray_direction = np.array([0, 0, -1], float)
 		n = int(math.sqrt(self.sr.num_samples))
-
+		
 		for i in xrange(0, self.sr.screen_height):
-			print str(100.0*i/self.sr.screen_height) + "%"
+			self.print_progress(i)
 			for j in xrange(0, self.sr.screen_width):
 				pixel_color = const.BLACK
 				
@@ -88,7 +88,14 @@ class World(object):
 				# Take the average of each of the colors
 				pixel_color = pixel_color*(1.0/self.sr.num_samples)
 				self.add_pixel(i, j, pixel_color)
-		
+	
+	def print_progress(self, outer_loop_index):
+		"""
+		Print how far the render has progressed
+		"""
+		percent_progress = 100.0*outer_loop_index/self.sr.screen_height
+		print str(percent_progress) + "%"
+	
 	def add_pixel(self, row, column, color):
 		"""
 		Adds the pixel color to the numpy array of pixels

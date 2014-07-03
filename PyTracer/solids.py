@@ -13,7 +13,6 @@ class Solid(object):
 	"""
 	Abstract class for a geometric solid
 	"""
-	
 	__metaclass__ = ABCMeta
 	
 	@abstractmethod
