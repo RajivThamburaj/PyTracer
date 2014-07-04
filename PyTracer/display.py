@@ -76,7 +76,7 @@ class World(object):
 				n = self.sr.num_samples
 				for p in xrange(n):
 					# Get the next sampling point in the set [0,1] x [0,1]
-					sample_point = self.sr.sampler.next_sample()
+					sample_point = self.sr.sampler.get_square_sample()
 					# Find the points within the current pixel to sample
 					x = self.sr.pixel_width * (j - 0.5*self.sr.screen_width + sample_point[0])
 					y = self.sr.pixel_width * (i - 0.5*self.sr.screen_height + sample_point[1])

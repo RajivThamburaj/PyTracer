@@ -21,19 +21,35 @@ class Sampler(object):
 		"""
 		self.num_samples = num_samples
 		self.sample_index = 0
-		self.num_sets = 80
+		self.num_sets = 83
 		self.samples = []
 		
 		self.generate_samples()
+		self.shuffle_indices()
 	
-	def next_sample(self):
+	def get_square_sample(self):
 		"""
 		Returns the next point to be sampled in the set [0,1] x [0,1]
 		"""
-		sample_size = self.num_samples * self.num_sets
-		next_sample = (self.samples[self.sample_index % sample_size])
+		# Sets are accessed in a random order to eliminate matching samples in rows/columns
+		if (self.sample_index % self.num_samples) == 0:
+			self.skip = (random.randrange(999) % self.num_sets) * self.num_samples
+		
+		index = self.skip + self.shuffled_indices[(self.skip + self.sample_index) % self.num_samples]
+		next_sample = self.samples[index]
 		self.sample_index += 1
 		return next_sample
+	
+	def shuffle_indices(self):
+		"""
+		Shuffles sample indices to prevent streaks due to sample correlation
+		"""
+		self.shuffled_indices = []
+		indices = range(self.num_samples)
+		
+		for i in xrange(self.num_sets):
+			random.shuffle(indices)
+			self.shuffled_indices += indices
 	
 	@abstractmethod
 	def generate_samples(self): pass
