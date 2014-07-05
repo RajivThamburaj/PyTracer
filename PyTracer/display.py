@@ -25,7 +25,7 @@ class World(object):
 		self.build()
 		self.pixels = np.zeros((self.sr.screen_width, self.sr.screen_height, 3))
 		
-		self.render_image()
+		self.render()
 		self.display_image()
 	
 	def build(self):
@@ -41,6 +41,8 @@ class World(object):
 		
 		self.background_color = const.BLACK
 		self.tracer = MultiplePrimitivesTracer(self)
+		self.view_distance = 200
+		self.plane_distance = 100
 		
 		center = np.array([0, -25, 0], float)
 		radius = 80
@@ -59,7 +61,7 @@ class World(object):
 		
 		self.objects = [sphere_1, sphere_2, plane]
 	
-	def render_image(self):
+	def render(self):
 		"""
 		Renders the image, pixel by pixel
 		"""
@@ -87,6 +89,26 @@ class World(object):
 
 				# Take the average of each of the colors
 				pixel_color = pixel_color*(1.0/self.sr.num_samples)
+				self.add_pixel(i, j, pixel_color)
+	
+	def render_perspective(self):
+		"""
+		Renders the image, pixel by pixel, with perspective tracing
+		"""
+		# Origin for the rays on the z-axis
+		ray_origin = np.array([0, 0, self.view_distance], float)
+		
+		for i in xrange(0, self.sr.screen_height):
+			self.print_progress(i)
+			for j in xrange(0, self.sr.screen_width):
+				d_x = self.sr.pixel_width * (j - 0.5*(self.sr.screen_width - 1.0))
+				d_y = self.sr.pixel_width * (i - 0.5*(self.sr.screen_height - 1.0))
+				d_z = -self.plane_distance
+				ray_direction = np.array([d_x, d_y, d_z], float)
+				ray_direction = ray_direction * (1.0/np.linalg.norm(ray_direction))
+				ray = geom.Ray(ray_origin, ray_direction)
+				
+				pixel_color = self.tracer.trace_ray(ray)
 				self.add_pixel(i, j, pixel_color)
 	
 	def print_progress(self, outer_loop_index):
