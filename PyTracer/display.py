@@ -6,7 +6,6 @@ Author: Rajiv Thamburaj
 
 import constants as const
 import solids
-import geometry as geom
 import numpy as np
 import matplotlib.pyplot as plt
 import sample
@@ -84,8 +83,7 @@ class World(object):
 					y = self.sr.pixel_width * (i - 0.5*self.sr.screen_height + sample_point[1])
 					
 					ray_origin = np.array([x, y, z_w], float)
-					ray = geom.Ray(ray_origin, ray_direction)
-					pixel_color = pixel_color + self.tracer.trace_ray(ray)
+					pixel_color = pixel_color + self.tracer.trace_ray(ray_origin, ray_direction)
 
 				# Take the average of each of the colors
 				pixel_color = pixel_color*(1.0/self.sr.num_samples)
@@ -106,9 +104,8 @@ class World(object):
 				d_z = -self.plane_distance
 				ray_direction = np.array([d_x, d_y, d_z], float)
 				ray_direction = ray_direction * (1.0/np.linalg.norm(ray_direction))
-				ray = geom.Ray(ray_origin, ray_direction)
 				
-				pixel_color = self.tracer.trace_ray(ray)
+				pixel_color = self.tracer.trace_ray(ray_origin, ray_direction)
 				self.add_pixel(i, j, pixel_color)
 	
 	def print_progress(self, outer_loop_index):
@@ -138,7 +135,7 @@ class World(object):
 		plt.axis("off")
 		plt.show()
 		
-	def hit_primitives(self, ray):
+	def hit_primitives(self, ray_origin, ray_direction):
 		"""
 		Find the closest hit point for the given ray
 		"""
@@ -146,7 +143,7 @@ class World(object):
 		shade_rectangle = ShadeRectangle(self)
 		
 		for object in self.objects:
-			if object.did_hit(ray, shade_rectangle):
+			if object.did_hit(ray_origin, ray_direction, shade_rectangle):
 				if object.t_min < t_min:
 					shade_rectangle.did_hit = True
 					t_min = object.t_min
@@ -195,7 +192,7 @@ class Tracer(object):
 		"""
 		self.world = world
 	
-	def trace_ray(self, ray):
+	def trace_ray(self, ray_origin, ray_direction):
 		"""
 		Determines the color of the pixel for the given ray
 		"""
@@ -206,11 +203,11 @@ class MultiplePrimitivesTracer(Tracer):
 	Tracer for drawing multiple primitives
 	"""
 	
-	def trace_ray(self, ray):
+	def trace_ray(self, ray_origin, ray_direction):
 		"""
 		Determines the color of the pixel for the given ray
 		"""
-		shade_rectangle = self.world.hit_primitives(ray)
+		shade_rectangle = self.world.hit_primitives(ray_origin, ray_direction)
 		
 		if shade_rectangle.did_hit:
 			return shade_rectangle.color

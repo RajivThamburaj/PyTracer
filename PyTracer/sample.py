@@ -118,5 +118,3 @@ class JitteredSampler(Sampler):
 					y = (i + random.random()) / n
 					sample = np.array([x, y], float)
 					self.samples.append(sample)
-	
-	

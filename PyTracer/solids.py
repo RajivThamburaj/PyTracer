@@ -31,13 +31,13 @@ class Plane(Solid):
 		self.normal = normal
 		self.color = color
 	
-	def did_hit(self, ray, shade_rectangle):
+	def did_hit(self, ray_origin, ray_direction, shade_rectangle):
 		"""
 		Returns True if the given ray intersects the plane, and mutates the
 		shade rectangle
 		"""
-		t_1 = np.dot((self.point-ray.origin), self.normal)
-		t_2 = np.dot(ray.direction, self.normal)
+		t_1 = np.dot(self.point-ray_origin, self.normal)
+		t_2 = np.dot(ray_direction, self.normal)
 		# Avoid division by zero
 		if abs(t_2) <= const.EPSILON:
 			return False
@@ -47,7 +47,7 @@ class Plane(Solid):
 			self.t_min = t
 			# Modify the shade rectangle reference
 			shade_rectangle.normal = self.normal
-			shade_rectangle.local_hit_point = ray.origin + t*ray.direction
+			shade_rectangle.local_hit_point = ray_origin + t*ray_direction
 			return True
 		return False
 
@@ -64,14 +64,14 @@ class Sphere(Solid):
 		self.radius = radius
 		self.color = color
 	
-	def did_hit(self, ray, shade_rectangle):
+	def did_hit(self, ray_origin, ray_direction, shade_rectangle):
 		"""
 		Returns True if the given ray intersects the spherical shell, and mutates
 		the shade rectangle
 		"""
-		difference = ray.origin - self.center
-		a = np.dot(ray.direction, ray.direction)
-		b = 2.0 * np.dot(difference, ray.direction)
+		difference = ray_origin - self.center
+		a = np.dot(ray_direction, ray_direction)
+		b = 2.0 * np.dot(difference, ray_direction)
 		c = np.dot(difference, difference) - self.radius*self.radius
 		discriminant = b*b - 4.0*a*c
 		
@@ -85,14 +85,14 @@ class Sphere(Solid):
 			t = (-b - discriminant_root) / denominator
 			if (t > const.EPSILON):
 				self.t_min = t
-				shade_rectangle.normal = (difference + t*ray.direction) / self.radius
-				shade_rectangle.local_hit_point = ray.origin + t*ray.direction
+				shade_rectangle.normal = (difference + t*ray_direction) / self.radius
+				shade_rectangle.local_hit_point = ray_origin + t*ray_direction
 				return True
 			# Larger root next
 			t = (-b + discriminant_root) / denominator
 			if (t > const.EPSILON):
 				self.t_min = t
-				shade_rectangle.normal = (difference + t*ray.direction) / self.radius
-				shade_rectangle.local_hit_point = ray.origin + t*ray.direction
+				shade_rectangle.normal = (difference + t*ray_direction) / self.radius
+				shade_rectangle.local_hit_point = ray_origin + t*ray_direction
 				return True
 		return False
